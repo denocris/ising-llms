@@ -1,0 +1,16 @@
+# Configuration for Ising LLM Experiments
+
+model: "llama3-70b-8192" #"gemma2-9b-it" #"gpt-3.5-turbo"
+seed: 172
+size: 25
+temperature: 0.2
+num_steps: 30
+max_tokens: 2
+show_viz: False
+generate_image: True
+groq_api: True 
+openai_api: False 
+
+
+
+
