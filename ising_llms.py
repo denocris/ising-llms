@@ -62,7 +62,7 @@ class LLMSpin:
             #raw_state = response.choices[0].message.content.strip()
             # Clean response to remove problematic characters before using/printing
             #new_state = raw_state.encode('ascii', errors='ignore').decode('ascii').lower()
-            #print(new_state)
+            print(new_state)
             #time.sleep(0.65)
             #return 'agree' if 'agree' in new_state else 'disagree'
             return 'yes' if 'yes' in new_state else 'no'
@@ -77,7 +77,7 @@ class IsingLLM:
         # We init the lattice in a random config of yes and no states
         self.lattice = [[LLMSpin((i, j), random.choice(['yes','no'])) for j in range(size)] for i in range(size)]
         #self.lattice = [[LLMSpin((i, j), 'neutral') for j in range(size)] for i in range(size)]
-        self.output_file = f"magnetizations/isingllm_magnetization__model-{config['model']}_size-{self.size}_temp-{self.temperature}.csv"
+        self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.csv"
         #self.lattice_file = f"results/isingllm_lattice__model-{config['model']}_size-{self.size}_temp-{self.temperature}.npy"
         
         # Initialize magnetization file
@@ -131,7 +131,7 @@ class IsingLLM:
         """Save the current lattice state to a numpy array file."""
         lattice_array = self.get_lattice_array()
         # Save with step number in filename
-        step_filename = f"lattices/lattice-state_step_{step}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.npy"
+        step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.npy"
         np.save(step_filename, lattice_array)
 
     def save_lattice_image(self, step: int = None):
@@ -155,7 +155,7 @@ class IsingLLM:
         filename = f"images/lattice-image"
         if step is not None:
             filename += f"_step{step}"
-        filename += f"_model-{config['model']}_size-{self.size}_temp-{self.temperature}.png"
+        filename += f"__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.png"
         
         # Save the figure
         plt.savefig(filename, bbox_inches='tight', dpi=150)
