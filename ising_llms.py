@@ -26,7 +26,7 @@ if config['groq_api']==True:
     client = Groq(api_key=GROQ_API_KEY)
 elif config['openai_api']==True:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    client = OpenAI(api_key="OPENAI_API_KEY")
+    client = OpenAI(api_key=OPENAI_API_KEY)
 else:
     print('Select a client!')
 
