@@ -4,6 +4,7 @@ import yaml
 import os
 import matplotlib.pyplot as plt 
 import time
+import random
 
 
 from openai import OpenAI
@@ -15,7 +16,7 @@ with open('config.yaml', 'r') as file:
 
 
 ############ INITIALIZE SEED #############
-#random.seed(config['seed'])
+random.seed(config['seed'])
 np.random.seed(config['seed'])
 #torch.manual_seed(config['seed']) 
 
@@ -34,7 +35,7 @@ else:
 class LLMSpin:
     def __init__(self, position: Tuple[int, int], initial_state: str = "neutral"):
         self.position = position
-        self.state = initial_state
+        self.state = initial_state # random.choice(['yes','no'])
         self.client = client
         #self.memory = []  # Store interaction history
 
@@ -57,6 +58,10 @@ class LLMSpin:
                 max_tokens=config['max_tokens']
             )
             new_state = response.choices[0].message.content.strip().lower()
+            #new_state = new_state.encode('ascii', errors='ignore').decode('ascii')
+            #raw_state = response.choices[0].message.content.strip()
+            # Clean response to remove problematic characters before using/printing
+            #new_state = raw_state.encode('ascii', errors='ignore').decode('ascii').lower()
             print(new_state)
             #time.sleep(0.65)
             #return 'agree' if 'agree' in new_state else 'disagree'
@@ -69,7 +74,9 @@ class IsingLLM:
     def __init__(self, size: int, temperature: float = 0.5):
         self.size = size
         self.temperature = temperature
-        self.lattice = [[LLMSpin((i, j)) for j in range(size)] for i in range(size)]
+        # We init the lattice in a random config of yes and no states
+        self.lattice = [[LLMSpin((i, j), random.choice(['yes','no'])) for j in range(size)] for i in range(size)]
+        #self.lattice = [[LLMSpin((i, j), 'neutral') for j in range(size)] for i in range(size)]
         self.output_file = f"magnetizations/isingllm_magnetization__model-{config['model']}_size-{self.size}_temp-{self.temperature}.csv"
         #self.lattice_file = f"results/isingllm_lattice__model-{config['model']}_size-{self.size}_temp-{self.temperature}.npy"
         
