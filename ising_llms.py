@@ -62,7 +62,7 @@ class LLMSpin:
             #raw_state = response.choices[0].message.content.strip()
             # Clean response to remove problematic characters before using/printing
             #new_state = raw_state.encode('ascii', errors='ignore').decode('ascii').lower()
-            print(new_state)
+            #print(new_state)
             #time.sleep(0.65)
             #return 'agree' if 'agree' in new_state else 'disagree'
             return 'yes' if 'yes' in new_state else 'no'
