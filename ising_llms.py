@@ -25,7 +25,7 @@ if config['groq_api']==True:
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     client = Groq(api_key=GROQ_API_KEY)
 elif config['openai_api']==True:
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     client = OpenAI(api_key="OPENAI_API_KEY")
 else:
     print('Select a client!')
@@ -57,7 +57,7 @@ class LLMSpin:
                 max_tokens=config['max_tokens']
             )
             new_state = response.choices[0].message.content.strip().lower()
-            #print(new_state)
+            print(new_state)
             #time.sleep(0.65)
             #return 'agree' if 'agree' in new_state else 'disagree'
             return 'yes' if 'yes' in new_state else 'no'
