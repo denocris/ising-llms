@@ -55,14 +55,14 @@ class LLMSpin:
                 model=config['model'],
                 messages=[{"role": "system", "content": prompt}],
                 temperature=temperature,
-                max_tokens=config['max_tokens']
+                max_completion_tokens=config['max_tokens']
             )
             new_state = response.choices[0].message.content.strip().lower()
             #new_state = new_state.encode('ascii', errors='ignore').decode('ascii')
             #raw_state = response.choices[0].message.content.strip()
             # Clean response to remove problematic characters before using/printing
             #new_state = raw_state.encode('ascii', errors='ignore').decode('ascii').lower()
-            #print(new_state)
+            print(new_state)
             #time.sleep(0.65)
             #return 'agree' if 'agree' in new_state else 'disagree'
             return 'yes' if 'yes' in new_state else 'no'
