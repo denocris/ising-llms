@@ -51,13 +51,14 @@ class LLMSpin:
         """
         
         try:
-            response = self.client.chat.completions.create(
+            response = self.client.responses.create(
                 model=config['model'],
-                messages=[{"role": "system", "content": prompt}],
-                temperature=temperature,
-                max_completion_tokens=config['max_tokens']
+                input=[{"role": "system", "content": prompt}],
+                reasoning={"effort": config['reasoning_effort']},
+                max_output_tokens=config['max_tokens'],
             )
-            new_state = response.choices[0].message.content.strip().lower()
+            new_state = response.output_text.strip().lower()
+
             #new_state = new_state.encode('ascii', errors='ignore').decode('ascii')
             #raw_state = response.choices[0].message.content.strip()
             # Clean response to remove problematic characters before using/printing
@@ -71,14 +72,14 @@ class LLMSpin:
             return self.state
 
 class IsingLLM:
-    def __init__(self, size: int, temperature: float = 0.5):
+    def __init__(self, size: int, effort: str = 'low'):
         self.size = size
-        self.temperature = temperature
+        self.effort = effort
         # We init the lattice in a random config of yes and no states
         self.lattice = [[LLMSpin((i, j), random.choice(['yes','no'])) for j in range(size)] for i in range(size)]
         #self.lattice = [[LLMSpin((i, j), 'neutral') for j in range(size)] for i in range(size)]
         
-        self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.csv"
+        self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-{config['model']}_size-{self.size}_effort-{self.effort}.csv"
         #self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.csv"
         
         # Initialize magnetization file
@@ -96,7 +97,7 @@ class IsingLLM:
     def update_site(self, i: int, j: int):
         """Update single site based on neighbors."""
         neighbors_states = self.get_neighbors(i, j)
-        new_state = self.lattice[i][j].get_response(neighbors_states, self.temperature)
+        new_state = self.lattice[i][j].get_response(neighbors_states, self.effort)
         self.lattice[i][j].state = new_state
         
     def get_lattice_array(self) -> np.ndarray:
@@ -133,7 +134,7 @@ class IsingLLM:
         lattice_array = self.get_lattice_array()
         # Save with step number in filename
         
-        step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.npy"
+        step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-{config['model']}_size-{self.size}_effort-{self.effort}.npy"
         #step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.npy"
         np.save(step_filename, lattice_array)
 
@@ -158,7 +159,7 @@ class IsingLLM:
         filename = f"images/lattice-image"
         if step is not None:
             filename += f"_step{step}"
-        filename += f"__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.png"
+        filename += f"__seed-{config['seed']}_model-{config['model']}_size-{self.size}_effort-{self.effort}.png"
         #filename += f"__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.png"
 
         
