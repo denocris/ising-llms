@@ -77,8 +77,9 @@ class IsingLLM:
         # We init the lattice in a random config of yes and no states
         self.lattice = [[LLMSpin((i, j), random.choice(['yes','no'])) for j in range(size)] for i in range(size)]
         #self.lattice = [[LLMSpin((i, j), 'neutral') for j in range(size)] for i in range(size)]
+        
         self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.csv"
-        #self.lattice_file = f"results/isingllm_lattice__model-{config['model']}_size-{self.size}_temp-{self.temperature}.npy"
+        #self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.csv"
         
         # Initialize magnetization file
         with open(self.output_file, 'w') as f:
@@ -131,7 +132,9 @@ class IsingLLM:
         """Save the current lattice state to a numpy array file."""
         lattice_array = self.get_lattice_array()
         # Save with step number in filename
+        
         step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.npy"
+        #step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.npy"
         np.save(step_filename, lattice_array)
 
     def save_lattice_image(self, step: int = None):
@@ -156,6 +159,8 @@ class IsingLLM:
         if step is not None:
             filename += f"_step{step}"
         filename += f"__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.png"
+        #filename += f"__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.png"
+
         
         # Save the figure
         plt.savefig(filename, bbox_inches='tight', dpi=150)
