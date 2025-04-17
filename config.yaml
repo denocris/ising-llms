@@ -1,9 +1,9 @@
 model: 'o3-mini' #'gemma2-9b-it' #'meta-llama/llama-4-scout-17b-16e-instruct' #'allam-2-7b' #'llama3-8b-8192' #'gpt-3.5-turbo' # 'gemma2-9b-it' # 'llama3-70b-8192'
 seed: 172
 size: 25
-reasoning_effort: 'medium' # 'medium' 'high'
+reasoning_effort: 'low' # 'medium' 'high'
 num_steps: 20
-max_tokens: 10000
+max_tokens: 2000
 show_viz: False
 generate_image: True
 groq_api: False
