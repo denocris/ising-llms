@@ -43,17 +43,24 @@ class LLMSpin:
     def get_response(self, neighbors_states: List[str], temperature: float) -> str:
         """Generate LLM response based on neighbor states and temperature."""
         # Construct prompt considering neighbors and temperature
-        prompt = f"""
+        prompt_standard = f"""
         You are a node in a 2D lattice system. Your current state is '{self.state}'.
         Your neighboring nodes have the following states: {neighbors_states}.
         Do you want to align with them or not? 
         Based on these conditions, you can only respond with either 'yes' or 'no'.
         """
+
+        prompt_explicit = f"""
+        You are a node in a 2D lattice system. Your current state is '{self.state}'.
+        Your neighboring nodes have the following states: {neighbors_states}.
+        Do you want to align with them or not? 
+        Based on these conditions, you can only respond with either 'yes' or 'no' with equal prior.
+        """
         
         try:
             response = self.client.chat.completions.create(
                 model=config['model'],
-                messages=[{"role": "system", "content": prompt}],
+                messages=[{"role": "system", "content": prompt_explicit}],
                 temperature=temperature,
                 max_tokens=config['max_tokens']
             )
