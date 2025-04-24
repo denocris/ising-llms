@@ -65,13 +65,6 @@ class LLMSpin:
             neighbors_states=neighbors_states
         )
 
-        prompt_runpod = f"""
-        You are a node in a 2D lattice system. Your current state is '{self.state}'.
-        Your neighboring nodes have the following states: {neighbors_states}.
-        Do you want to align with them or not? 
-        Based on these conditions, you can only respond with either 'yes' or 'no'.
-        """
-
         try:
             response = self.client.chat.completions.create(
                 model=config['model'],
