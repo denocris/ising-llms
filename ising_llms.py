@@ -32,6 +32,22 @@ else:
     print('Select a client!')
 
 
+# Load prompts from prompts.txt
+def load_prompts():
+    prompts = {}
+    with open('prompts_list.txt', 'r') as file:
+        content = file.read()
+        # Split by 'prompt_' and process each section
+        sections = content.split('prompt_')
+        for section in sections[1:]:  # Skip first empty section
+            lines = section.strip().split('\n')
+            prompt_name = lines[0].split('=')[0].strip()
+            prompt_text = '\n'.join(lines[1:]).strip().strip('"""')
+            prompts[prompt_name] = prompt_text
+    return prompts
+
+PROMPTS = load_prompts()
+
 class LLMSpin:
     def __init__(self, position: Tuple[int, int], initial_state: str = "neutral"):
         self.position = position
@@ -42,27 +58,27 @@ class LLMSpin:
         
     def get_response(self, neighbors_states: List[str], temperature: float) -> str:
         """Generate LLM response based on neighbor states and temperature."""
-        # Construct prompt considering neighbors and temperature
-        prompt_standard = f"""
+        # Use selected prompt from prompts.txt
+        prompt_template = PROMPTS[config['prompt_type']]
+        formatted_prompt = prompt_template.format(
+            state=self.state,
+            neighbors_states=neighbors_states
+        )
+
+        prompt_runpod = f"""
         You are a node in a 2D lattice system. Your current state is '{self.state}'.
         Your neighboring nodes have the following states: {neighbors_states}.
         Do you want to align with them or not? 
         Based on these conditions, you can only respond with either 'yes' or 'no'.
         """
 
-        prompt_explicit = f"""
-        You are a node in a 2D lattice system. Your current state is '{self.state}'.
-        Your neighboring nodes have the following states: {neighbors_states}.
-        Do you want to align with them or not? 
-        Based on these conditions, you can only respond with either 'yes' or 'no' with equal prior.
-        """
-        
         try:
             response = self.client.chat.completions.create(
                 model=config['model'],
-                messages=[{"role": "system", "content": prompt_explicit}],
+                messages=[{"role": "system", "content": formatted_prompt}],
                 temperature=temperature,
-                max_tokens=config['max_tokens']
+                max_tokens=config['max_tokens'],
+                #seed=config['seed'],
             )
             new_state = response.choices[0].message.content.strip().lower()
             #new_state = new_state.encode('ascii', errors='ignore').decode('ascii')
@@ -85,7 +101,8 @@ class IsingLLM:
         self.lattice = [[LLMSpin((i, j), random.choice(['yes','no'])) for j in range(size)] for i in range(size)]
         #self.lattice = [[LLMSpin((i, j), 'neutral') for j in range(size)] for i in range(size)]
         
-        self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.csv"
+        # Update file naming to include prompt type
+        self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}_prompt-{config['prompt_type']}.csv"
         #self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.csv"
         
         # Initialize magnetization file
@@ -138,9 +155,7 @@ class IsingLLM:
     def save_lattice_state(self, step: int):
         """Save the current lattice state to a numpy array file."""
         lattice_array = self.get_lattice_array()
-        # Save with step number in filename
-        
-        step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.npy"
+        step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}_prompt-{config['prompt_type']}.npy"
         #step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.npy"
         np.save(step_filename, lattice_array)
 
@@ -165,7 +180,7 @@ class IsingLLM:
         filename = f"images/lattice-image"
         if step is not None:
             filename += f"_step{step}"
-        filename += f"__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}.png"
+        filename += f"__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}_prompt-{config['prompt_type']}.png"
         #filename += f"__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.png"
 
         

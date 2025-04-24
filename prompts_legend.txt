@@ -1,0 +1,4 @@
+prompt_nr1: Initial standard prompt used in first stage of experiments
+prompt_nr2: Equal prior prompt (prompt nr1 + "with equal prior")
+
+

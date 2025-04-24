@@ -19,7 +19,7 @@ if __name__ == "__main__":
     os.makedirs('lattices', exist_ok=True)
 
 
-    print(f"Running {config['model']} on lattice {config['size']}^2 with T = {config['temperature']}")
+    print(f"Running {config['model']} on lattice {config['size']}^2 with T = {config['temperature']} and prompt = {config['prompt_type']}")
     # Create a size x size lattice
     model = IsingLLM(size=config['size'], temperature=config['temperature'])
     

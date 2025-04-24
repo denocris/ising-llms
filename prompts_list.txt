@@ -1,0 +1,15 @@
+
+prompt_nr1 = f"""
+You are a node in a 2D lattice system. Your current state is '{state}'. 
+Your neighboring nodes have the following states: {neighbors_states}. 
+Do you want to align with them or not? 
+Based on these conditions, you can only respond with either 'yes' or 'no'.
+"""
+
+prompt_nr2 = f"""
+You are a node in a 2D lattice system. Your current state is '{state}'. 
+Your neighboring nodes have the following states: {neighbors_states}. 
+Do you want to align with them or not? 
+Both answers are equally acceptable; there is no preferred choice.
+Based on these conditions, you can only respond with either 'yes' or 'no'. 
+"""

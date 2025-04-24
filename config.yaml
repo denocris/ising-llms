@@ -1,10 +1,13 @@
-model: 'qwen-qwq-32b' #'gemma2-9b-it' #'o3-mini' #'meta-llama/llama-4-scout-17b-16e-instruct' #'allam-2-7b' #'llama3-8b-8192' #'gpt-3.5-turbo' # 'gemma2-9b-it' # 'llama3-70b-8192'
+model: 'gemma2-9b-it' #'gpt-3.5-turbo' #'qwen-qwq-32b' #'o3-mini' #'meta-llama/llama-4-scout-17b-16e-instruct' #'allam-2-7b' #'llama3-8b-8192' #'gpt-3.5-turbo' # 'gemma2-9b-it' # 'llama3-70b-8192'
 seed: 172
 size: 25
-temperature: 0.2
-num_steps: 15
+temperature: 0.0
+num_steps: 20
 max_tokens: 2
 show_viz: False
 generate_image: True
 groq_api: True
-openai_api: False
+openai_api: False 
+prompt_type: 'nr1' #'old'  # can be 'standard' or 'explicit'
+
+
