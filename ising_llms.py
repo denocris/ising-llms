@@ -74,8 +74,6 @@ class LLMSpin:
                 #seed=config['seed'],
             )
             new_state = response.choices[0].message.content.strip().lower()
-            #new_state = new_state.encode('ascii', errors='ignore').decode('ascii')
-            #raw_state = response.choices[0].message.content.strip()
             # Clean response to remove problematic characters before using/printing
             #new_state = raw_state.encode('ascii', errors='ignore').decode('ascii').lower()
             #print(new_state)
@@ -193,4 +191,4 @@ class IsingLLM:
     def save_step_magnetization(self, step: int, magnetization: float):
         """Save magnetization for current step immediately to file."""
         with open(self.output_file, 'a') as f:
-            f.write(f"{step},{magnetization:.4f}\n")
+            f.write(f"{step},{magnetization:.4f}, {magnetization**2:.4f}, {magnetization**4:.4f}\n")
