@@ -3,12 +3,16 @@ from typing import List, Tuple
 import yaml
 import os
 import matplotlib.pyplot as plt 
-import time
 import random
+import torch
+import time
 
 
 from openai import OpenAI
 from groq import Groq
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import ollama
+import yaml
 
 # Load the config file
 with open('config.yaml', 'r') as file: 
@@ -18,16 +22,24 @@ with open('config.yaml', 'r') as file:
 ############ INITIALIZE SEED #############
 random.seed(config['seed'])
 np.random.seed(config['seed'])
-#torch.manual_seed(config['seed']) 
+torch.manual_seed(config['seed']) 
 
 
-
-if config['groq_api']==True:
+if config['service']=='groq':
+    model_name = config['model']
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     client = Groq(api_key=GROQ_API_KEY)
-elif config['openai_api']==True:
+elif config['service']=='openai':
+    model_name = config['model']
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     client = OpenAI(api_key=OPENAI_API_KEY)
+elif config['service']=='huggingface':
+    model_name = config['model']
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
+    client = {"model": model_name, "tokenizer": tokenizer}
+elif config['service']=='ollama':
+    model_name = config['model']
 else:
     print('Select a client!')
 
@@ -52,7 +64,10 @@ class LLMSpin:
     def __init__(self, position: Tuple[int, int], initial_state: str = "neutral"):
         self.position = position
         self.state = initial_state # random.choice(['yes','no'])
-        self.client = client
+        if config['service']=='huggingface' or config['service']=='openai' or config['service']=='groq':
+            self.client = client
+        elif config['service']=='ollama':
+            self.client = None
         #self.memory = []  # Store interaction history
 
         
@@ -66,17 +81,36 @@ class LLMSpin:
         )
 
         try:
-            response = self.client.chat.completions.create(
-                model=config['model'],
-                messages=[{"role": "system", "content": formatted_prompt}],
-                temperature=temperature,
-                max_tokens=config['max_tokens'],
-                #seed=config['seed'],
-            )
-            new_state = response.choices[0].message.content.strip().lower()
-            # Clean response to remove problematic characters before using/printing
-            #new_state = raw_state.encode('ascii', errors='ignore').decode('ascii').lower()
-            #print(new_state)
+            if config['service']=='huggingface':
+                # Handle Hugging Face model response
+                inputs = self.client["tokenizer"](formatted_prompt, return_tensors="pt")
+                # HF output contains the prompt and the new tokens
+                outputs = self.client["model"].generate(
+                    inputs["input_ids"],
+                    max_new_tokens=config['max_tokens'],
+                    temperature=temperature,
+                    do_sample=True
+                )
+                # compute input length in tokens
+                prompt_len = inputs["input_ids"].shape[-1]
+                # slice off the prompt part, keeping only the new tokens
+                new_tokens = outputs[0][prompt_len:]
+                new_state = self.client["tokenizer"].decode(new_tokens, skip_special_tokens=True).strip().lower()
+            elif config['service']=='openai' or config['service']=='groq':
+                # Handle OpenAI/Groq response
+                response = self.client.chat.completions.create(
+                    model=model_name,
+                    messages=[{"role": "system", "content": formatted_prompt}],
+                    temperature=temperature,
+                    max_tokens=config['max_tokens'],
+                )
+                new_state = response.choices[0].message.content.strip().lower()
+            elif config['service']=='ollama':
+                response = ollama.generate(model=model_name, 
+                         prompt=formatted_prompt, 
+                         options={"temperature":temperature, "num_predict": config['max_tokens']})
+                new_state = response['response']
+            print(new_state)
             #time.sleep(0.65)
             #return 'agree' if 'agree' in new_state else 'disagree'
             return 'yes' if 'yes' in new_state else 'no'

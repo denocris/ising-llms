@@ -1,0 +1,17 @@
+# Service to use: 'groq' or 'openai' or 'huggingface' or 'ollama'
+service: 'ollama'
+# Groq or OpenAI models
+model: 'gemma3:1b' #'llama3.1:8b' #'gemma3:1b' #'gemma2-9b-it' #'gemma3:1b' #'gpt-3.5-turbo' 
+seed: 172
+size: 15
+temperature: 0.0
+num_steps: 30
+max_tokens: 2
+show_viz: False
+generate_image: True
+#groq_api: False
+#openai_api: False 
+#huggingface_api: True 
+prompt_type: 'nr1' #'old'  # can be 'standard' or 'explicit'
+
+
