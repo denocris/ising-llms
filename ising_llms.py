@@ -110,7 +110,7 @@ class LLMSpin:
                          prompt=formatted_prompt, 
                          options={"temperature":temperature, "num_predict": config['max_tokens']})
                 new_state = response['response']
-            print(new_state)
+            #print(new_state)
             #time.sleep(0.65)
             #return 'agree' if 'agree' in new_state else 'disagree'
             return 'yes' if 'yes' in new_state else 'no'
