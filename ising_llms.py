@@ -132,7 +132,7 @@ class IsingLLM:
         
         # Initialize magnetization file
         with open(self.output_file, 'w') as f:
-            f.write("Step,Magnetization\n")
+            f.write("Step, Magnetization, M**2, M**4\n")
         
     def get_neighbors(self, i: int, j: int) -> List[str]:
         """Get states of neighboring spins (periodic boundary conditions)."""

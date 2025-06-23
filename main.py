@@ -4,7 +4,8 @@ import time
 from tqdm import tqdm
 import numpy as np
 import os
-
+import random
+#import torch
 
 
 if __name__ == "__main__":
@@ -19,6 +20,10 @@ if __name__ == "__main__":
     os.makedirs('lattices', exist_ok=True)
 
     for temp in config["temperature"]:
+        ############ INITIALIZE SEED #############
+        random.seed(config['seed'])
+        np.random.seed(config['seed'])
+        #torch.manual_seed(config['seed']) 
         # inject the current temperature
         config['temperature'] = temp
         print(f"Running {config['model']} on lattice {config['size']}^2 with T = {config['temperature']} and prompt = {config['prompt_type']}")
