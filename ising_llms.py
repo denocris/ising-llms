@@ -215,13 +215,6 @@ class IsingLLM:
         
         #print(f"Lattice state image saved as {filename}")
 
-    #def save_magnetization(self, filename: str):
-    #    """Save magnetization history to a file."""
-    #    with open(filename, 'w') as f:
-    #        f.write("Step,Magnetization\n")  # CSV header
-    #        for step, mag in enumerate(self.magnetization_history):
-    #            f.write(f"{step},{mag:.4f}\n")
-
     def save_step_magnetization(self, step: int, magnetization: float):
         """Save magnetization for current step immediately to file."""
         with open(self.output_file, 'a') as f:
