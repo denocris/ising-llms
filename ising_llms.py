@@ -225,4 +225,4 @@ class IsingLLM:
     def save_step_magnetization(self, step: int, magnetization: float):
         """Save magnetization for current step immediately to file."""
         with open(self.output_file, 'a') as f:
-            f.write(f"{step},{magnetization:.5f}, {magnetization**2:.5f}, {magnetization**4:.5f}\n")
+            f.write(f"{step}, {magnetization:.5f}, {magnetization**2:.5f}, {magnetization**4:.5f}\n")
