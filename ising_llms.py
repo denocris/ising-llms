@@ -208,7 +208,6 @@ class IsingLLM:
         filename += f"__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}_prompt-{config['prompt_type']}.png"
         #filename += f"__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.png"
 
-        
         # Save the figure
         plt.savefig(filename, bbox_inches='tight', dpi=150)
         plt.close()
