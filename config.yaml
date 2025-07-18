@@ -1,16 +1,15 @@
 # Service to use: 'groq' or 'openai' or 'huggingface' or 'ollama'
-service: 'openai'
+service: 'groq'
 # Groq or OpenAI models
-model: 'gpt-3.5-turbo' #'llama3.1:8b' #'gemma3:1b' #'gemma2-9b-it' #'gemma3:1b' #'gpt-3.5-turbo' 
-seed: 173
+model: 'gemma2-9b-it' #'gemma3:1b' #'llama3.1:8b' #'gemma3:1b' #'gemma2-9b-it' #'gemma3:1b' #'gpt-3.5-turbo' 
+z2_symmetry: True
+seed: 0
 size: 7
-num_steps: 5
-max_tokens: 2
+num_steps: 5 #30
+max_tokens: 1
 show_viz: False
 generate_image: False
 prompt_type: 'nr1' #'old'  # can be 'standard' or 'explicit'
 temperature: 
-  - 0.4
-
-
+  - 0.5
 

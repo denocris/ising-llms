@@ -61,9 +61,10 @@ def load_prompts():
 PROMPTS = load_prompts()
 
 class LLMSpin:
-    def __init__(self, position: Tuple[int, int], initial_state: str = "neutral"):
+    def __init__(self, position: Tuple[int, int], initial_state: str = "neutral", global_flip: int = 1):
         self.position = position
         self.state = initial_state # random.choice(['yes','no'])
+        self.global_flip = global_flip
         if config['service']=='huggingface' or config['service']=='openai' or config['service']=='groq':
             self.client = client
         elif config['service']=='ollama':
@@ -95,7 +96,7 @@ class LLMSpin:
                 prompt_len = inputs["input_ids"].shape[-1]
                 # slice off the prompt part, keeping only the new tokens
                 new_tokens = outputs[0][prompt_len:]
-                new_state = self.client["tokenizer"].decode(new_tokens, skip_special_tokens=True).strip().lower()
+                raw_state = self.client["tokenizer"].decode(new_tokens, skip_special_tokens=True).strip().lower()
             elif config['service']=='openai' or config['service']=='groq':
                 # Handle OpenAI/Groq response
                 response = self.client.chat.completions.create(
@@ -104,16 +105,20 @@ class LLMSpin:
                     temperature=temperature,
                     max_tokens=config['max_tokens'],
                 )
-                new_state = response.choices[0].message.content.strip().lower()
+                raw_state = response.choices[0].message.content.strip().lower()
             elif config['service']=='ollama':
                 response = ollama.generate(model=model_name, 
                          prompt=formatted_prompt, 
                          options={"temperature":temperature, "num_predict": config['max_tokens']})
-                new_state = response['response']
-            #print(new_state)
+                raw_state = response['response']
+            print("Raw state:", raw_state)
             #time.sleep(0.65)
-            #return 'agree' if 'agree' in new_state else 'disagree'
-            return 'yes' if 'yes' in new_state else 'no'
+
+            # ------- global-flip post-processing ----------------------
+            # this ensures that the system is unbiased and enforces z_2 symmetry
+            sigma_raw   = 1 if 'yes' in raw_state else -1    
+            sigma_final = self.global_flip * sigma_raw      
+            return 'yes' if sigma_final == 1 else 'no'
         except Exception as e:
             print(f"Error in LLM response: {e}")
             return self.state
@@ -122,9 +127,16 @@ class IsingLLM:
     def __init__(self, size: int, temperature: float = 0.5):
         self.size = size
         self.temperature = temperature
-        # We init the lattice in a random config of yes and no states
-        self.lattice = [[LLMSpin((i, j), random.choice(['yes','no'])) for j in range(size)] for i in range(size)]
-        #self.lattice = [[LLMSpin((i, j), 'neutral') for j in range(size)] for i in range(size)]
+        # choose global flip once (+ or - 1): to unbias the system and enforce z_2 symmetry
+        if config['z2_symmetry'] == True:
+            self.global_flip  = 1 if np.random.rand() < 0.5 else -1
+            # We init the lattice in a random config of yes and no states
+            self.lattice = [[LLMSpin((i, j), random.choice(['yes','no']), self.global_flip) for j in range(size)] for i in range(size)]
+            print(f"Global flip: {self.global_flip}")
+        else:
+            # We init the lattice in a random config of yes and no states
+            self.lattice = [[LLMSpin((i, j), random.choice(['yes','no'])) for j in range(size)] for i in range(size)]
+        
         
         # Update file naming to include prompt type
         self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}_prompt-{config['prompt_type']}.csv"

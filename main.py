@@ -26,7 +26,7 @@ if __name__ == "__main__":
         #torch.manual_seed(config['seed']) 
         # inject the current temperature
         config['temperature'] = temp
-        print(f"Running {config['model']} on lattice {config['size']}^2 with T = {config['temperature']} and prompt = {config['prompt_type']}")
+        print(f"Model: {config['model']}, Lattice: {config['size']}^2, T = {config['temperature']}, prompt = {config['prompt_type']}, Z2 = {config['z2_symmetry']}")
         # Create a size x size lattice
         model = IsingLLM(size=config['size'], temperature=config['temperature'])
         
