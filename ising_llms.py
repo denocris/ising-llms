@@ -110,15 +110,19 @@ class LLMSpin:
                 response = ollama.generate(model=model_name, 
                          prompt=formatted_prompt, 
                          options={"temperature":temperature, "num_predict": config['max_tokens']})
-                raw_state = response['response']
-            print("Raw state:", raw_state)
+                raw_state = response['response'].strip().lower()
+            #print("Raw state:", raw_state)
             #time.sleep(0.65)
 
             # ------- global-flip post-processing ----------------------
             # this ensures that the system is unbiased and enforces z_2 symmetry
             sigma_raw   = 1 if 'yes' in raw_state else -1    
             sigma_final = self.global_flip * sigma_raw      
-            return 'yes' if sigma_final == 1 else 'no'
+            #print("Sigma raw:", sigma_raw)
+            #print("Sigma final:", sigma_final)
+            new_state = 'yes' if sigma_final == 1 else 'no'
+            #print("New state:", new_state)
+            return new_state
         except Exception as e:
             print(f"Error in LLM response: {e}")
             return self.state

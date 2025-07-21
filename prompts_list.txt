@@ -20,3 +20,10 @@ Your neighboring have the following states: {neighbors_states}.
 Do you want to align with them or not? 
 You can only respond with either 'yes' or 'no'.
 """
+
+prompt_nr4 = f"""
+Your current state is '{state}'. 
+Your neighboring have the following states: {neighbors_states}. 
+What state would you like to have?
+You can only respond with either 'yes' or 'no'.
+"""
