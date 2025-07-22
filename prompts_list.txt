@@ -28,7 +28,7 @@ What state would you like to have?
 You can only respond with either 'yes' or 'no'.
 """
 
-prompt_test = f"""
+prompt_nr5 = f"""
 Your neighbours have states: {neighbors_states}. 
 What state would you like to have?
 You can only respond with either 'yes' or 'no'.
