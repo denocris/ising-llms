@@ -20,7 +20,7 @@ with open('config.yaml', 'r') as file:
 
 
 ############ INITIALIZE SEED #############
-random.seed(config['seed'])
+random.seed(config['seed'])    
 np.random.seed(config['seed'])
 torch.manual_seed(config['seed']) 
 
@@ -131,6 +131,8 @@ class IsingLLM:
     def __init__(self, size: int, temperature: float = 0.5):
         self.size = size
         self.temperature = temperature
+        with open('config.yaml', 'r') as file: 
+            config = yaml.safe_load(file)
         # choose global flip once (+ or - 1): to unbias the system and enforce z_2 symmetry
         if config['z2_symmetry'] == True:
             self.global_flip  = 1 if np.random.rand() < 0.5 else -1
@@ -140,8 +142,8 @@ class IsingLLM:
         else:
             # We init the lattice in a random config of yes and no states
             self.lattice = [[LLMSpin((i, j), random.choice(['yes','no'])) for j in range(size)] for i in range(size)]
-        
-        
+# Load the config file
+         
         # Update file naming to include prompt type
         self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}_prompt-{config['prompt_type']}.csv"
         #self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.csv"

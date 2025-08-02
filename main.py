@@ -19,46 +19,53 @@ if __name__ == "__main__":
     os.makedirs('images', exist_ok=True)
     os.makedirs('lattices', exist_ok=True)
 
-    for temp in config["temperature"]:
-        ############ INITIALIZE SEED #############
-        random.seed(config['seed'])
-        np.random.seed(config['seed'])
-        #torch.manual_seed(config['seed']) 
-        # inject the current temperature
-        config['temperature'] = temp
-        print(f"Model: {config['model']}, Lattice: {config['size']}^2, T = {config['temperature']}, prompt = {config['prompt_type']}, Z2 = {config['z2_symmetry']}")
-        # Create a size x size lattice
-        model = IsingLLM(size=config['size'], temperature=config['temperature'])
-        
-        # Run simulation for a few steps
-        print("Init step")
-        if config['show_viz']:
-            model.visualize()
-        
-        # Calculate and store initial magnetization
-        initial_magnetization = model.calculate_magnetization()
-        #model.magnetization_history.append(initial_magnetization)
-        model.save_step_magnetization(0, initial_magnetization)
-        print(f"Initial Magnetization: {initial_magnetization:.5f}\n")
-        
-        # Save initial state
-        model.save_lattice_state(0)
-        
-        for step in tqdm(range(config['num_steps'])):
-            #print(f"Step {step}")
-            model.step()
-            if config['show_viz']:
-                print(f"Step {step + 1}")
-                model.visualize()
-            if config['generate_image']:
-                model.save_lattice_image(step=step+1)  # Save image for this step
-            model.save_lattice_state(step + 1)
+    for current_seed in range(config['seed_range']):
+        # update the seed 
+        config['seed'] = current_seed
+        # push the updated config to the file
+        with open("config.yaml", "w") as f:
+                yaml.safe_dump(config, f, sort_keys=False)
+        for temp in config['temperature']:
+            ############ INITIALIZE SEED #############
+            random.seed(config['seed'])
+            np.random.seed(config['seed'])
+            #torch.manual_seed(config['seed']) 
+            # inject the current temperature
+            #config['temperature'] = temp
 
-            # Save magnetization and lattice state
-            magnetization = model.calculate_magnetization()
-            model.save_step_magnetization(step + 1, magnetization)
+            print(f"Model: {config['model']}, Seed: {config['seed']}, Lattice: {config['size']}^2, T = {temp}, prompt = {config['prompt_type']}, Z2 = {config['z2_symmetry']}")
+            # Create a size x size lattice
+            model = IsingLLM(size=config['size'], temperature=temp)
             
-            if step%5==0:
-                print(f"Step: {step}, Magnetization: {magnetization:.5f}\n")
-            time.sleep(1)  # Delay to respect API rate limits
+            # Run simulation for a few steps
+            print("Init step")
+            if config['show_viz']:
+                model.visualize()
+            
+            # Calculate and store initial magnetization
+            initial_magnetization = model.calculate_magnetization()
+            #model.magnetization_history.append(initial_magnetization)
+            model.save_step_magnetization(0, initial_magnetization)
+            print(f"Initial Magnetization: {initial_magnetization:.5f}\n")
+            
+            # Save initial state
+            model.save_lattice_state(0)
+            
+            for step in tqdm(range(config['num_steps'])):
+                #print(f"Step {step}")
+                model.step()
+                if config['show_viz']:
+                    print(f"Step {step + 1}")
+                    model.visualize()
+                if config['generate_image']:
+                    model.save_lattice_image(step=step+1)  # Save image for this step
+                model.save_lattice_state(step + 1)
+
+                # Save magnetization and lattice state
+                magnetization = model.calculate_magnetization()
+                model.save_step_magnetization(step + 1, magnetization)
+                
+                if step%5==0:
+                    print(f"Step: {step}, Magnetization: {magnetization:.5f}\n")
+                time.sleep(1)  # Delay to respect API rate limits
         
