@@ -1,13 +1,12 @@
-service: ollama #
-model: phi4-mini:3.8b
+service: ollama
+model: gemma3:1b
 z2_symmetry: true
-seed: 9
-seed_range: 10
-size: 15
-num_steps: 30
+seed_range: [2,3]
+size: 7
+num_steps: 6
 max_tokens: 1
 show_viz: false
 generate_image: false
 prompt_type: nr5
-temperature:
-- 4.0
+temperature: [0.0, 8.0]
+

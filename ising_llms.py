@@ -1,6 +1,7 @@
 import numpy as np
 from typing import List, Tuple
 import yaml
+import argparse
 import os
 import matplotlib.pyplot as plt 
 import random
@@ -15,9 +16,11 @@ import ollama
 import yaml
 
 # Load the config file
-with open('config.yaml', 'r') as file: 
-    config = yaml.safe_load(file)
+#with open('config.yaml', 'r') as file: 
+#    config = yaml.safe_load(file)
 
+with open('config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
 
 ############ INITIALIZE SEED #############
 random.seed(config['seed'])    
@@ -109,7 +112,8 @@ class LLMSpin:
             elif config['service']=='ollama':
                 response = ollama.generate(model=model_name, 
                          prompt=formatted_prompt, 
-                         options={"temperature":temperature, "num_predict": config['max_tokens']})
+                         options={"temperature":temperature, 
+                        "num_predict": config['max_tokens']})
                 raw_state = response['response'].strip().lower()
             #print("Raw state:", raw_state)
             #time.sleep(0.65)

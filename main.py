@@ -1,11 +1,12 @@
 import yaml
+import argparse
 from ising_llms import IsingLLM
 import time
 from tqdm import tqdm
 import numpy as np
 import os
 import random
-#import torch
+import torch
 
 
 if __name__ == "__main__":
@@ -13,13 +14,14 @@ if __name__ == "__main__":
     # Load the config file
     with open('config.yaml', 'r') as file:
         config = yaml.safe_load(file)
+    
 
             # Create directories if they don't exist
     os.makedirs('magnetizations', exist_ok=True)
     os.makedirs('images', exist_ok=True)
     os.makedirs('lattices', exist_ok=True)
 
-    for current_seed in range(config['seed_range']):
+    for current_seed in range(config['seed'], config['seed_range']):
         # update the seed 
         config['seed'] = current_seed
         # push the updated config to the file
@@ -29,7 +31,7 @@ if __name__ == "__main__":
             ############ INITIALIZE SEED #############
             random.seed(config['seed'])
             np.random.seed(config['seed'])
-            #torch.manual_seed(config['seed']) 
+            torch.manual_seed(config['seed']) 
             # inject the current temperature
             #config['temperature'] = temp
 
