@@ -1,6 +1,6 @@
 import yaml
 import argparse
-from ising_llms_v2 import IsingLLM
+from ising_llms import IsingLLM
 import time
 from tqdm import tqdm
 import numpy as np

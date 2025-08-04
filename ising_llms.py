@@ -15,12 +15,6 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import ollama
 import yaml
 
-# Load the config file
-#with open('config.yaml', 'r') as file: 
-#    config = yaml.safe_load(file)
-
-
-
 
 # Load prompts from prompts.txt
 def load_prompts():
