@@ -19,32 +19,7 @@ import yaml
 #with open('config.yaml', 'r') as file: 
 #    config = yaml.safe_load(file)
 
-with open('config.yaml', 'r') as file:
-    config = yaml.safe_load(file)
 
-############ INITIALIZE SEED #############
-random.seed(config['seed'])    
-np.random.seed(config['seed'])
-torch.manual_seed(config['seed']) 
-
-
-if config['service']=='groq':
-    model_name = config['model']
-    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-    client = Groq(api_key=GROQ_API_KEY)
-elif config['service']=='openai':
-    model_name = config['model']
-    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    client = OpenAI(api_key=OPENAI_API_KEY)
-elif config['service']=='huggingface':
-    model_name = config['model']
-    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-    model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
-    client = {"model": model_name, "tokenizer": tokenizer}
-elif config['service']=='ollama':
-    model_name = config['model']
-else:
-    print('Select a client!')
 
 
 # Load prompts from prompts.txt
@@ -64,34 +39,38 @@ def load_prompts():
 PROMPTS = load_prompts()
 
 class LLMSpin:
-    def __init__(self, position: Tuple[int, int], initial_state: str = "neutral", global_flip: int = 1):
+    def __init__(self, position: Tuple[int, int], initial_state: str = "neutral", client: dict = None, global_flip: int = 1):
         self.position = position
-        self.state = initial_state # random.choice(['yes','no'])
+        self.state = initial_state 
         self.global_flip = global_flip
-        if config['service']=='huggingface' or config['service']=='openai' or config['service']=='groq':
-            self.client = client
-        elif config['service']=='ollama':
-            self.client = None
-        #self.memory = []  # Store interaction history
+        self.client = client
+        self.model_name = client['model']
+        self.service = client['service']
 
-        
-    def get_response(self, neighbors_states: List[str], temperature: float) -> str:
+        if self.service=='huggingface':
+            self.client = client
+        elif self.service=='openai' or  self.service=='groq':
+            self.client = client["client"]
+        elif self.service=='ollama':
+            self.client = client["client"] # which is None
+
+    def get_response(self, neighbors_states: List[str], temperature: float, max_tokens: int = 1, prompt_type: str = None) -> str:
         """Generate LLM response based on neighbor states and temperature."""
         # Use selected prompt from prompts.txt
-        prompt_template = PROMPTS[config['prompt_type']]
+        prompt_template = PROMPTS[prompt_type]
         formatted_prompt = prompt_template.format(
             state=self.state,
             neighbors_states=neighbors_states
         )
 
         try:
-            if config['service']=='huggingface':
+            if self.service=='huggingface':
                 # Handle Hugging Face model response
                 inputs = self.client["tokenizer"](formatted_prompt, return_tensors="pt")
                 # HF output contains the prompt and the new tokens
                 outputs = self.client["model"].generate(
                     inputs["input_ids"],
-                    max_new_tokens=config['max_tokens'],
+                    max_new_tokens=max_tokens,
                     temperature=temperature,
                     do_sample=True
                 )
@@ -100,20 +79,19 @@ class LLMSpin:
                 # slice off the prompt part, keeping only the new tokens
                 new_tokens = outputs[0][prompt_len:]
                 raw_state = self.client["tokenizer"].decode(new_tokens, skip_special_tokens=True).strip().lower()
-            elif config['service']=='openai' or config['service']=='groq':
+            elif self.service=='openai' or self.service=='groq':
                 # Handle OpenAI/Groq response
                 response = self.client.chat.completions.create(
-                    model=model_name,
+                    model=self.model_name,
                     messages=[{"role": "system", "content": formatted_prompt}],
                     temperature=temperature,
-                    max_tokens=config['max_tokens'],
+                    max_tokens=max_tokens,
                 )
                 raw_state = response.choices[0].message.content.strip().lower()
-            elif config['service']=='ollama':
-                response = ollama.generate(model=model_name, 
+            elif self.service=='ollama':
+                response = ollama.generate(model=self.model_name, 
                          prompt=formatted_prompt, 
-                         options={"temperature":temperature, 
-                        "num_predict": config['max_tokens']})
+                         options={"temperature":temperature, "num_predict": max_tokens})
                 raw_state = response['response'].strip().lower()
             #print("Raw state:", raw_state)
             #time.sleep(0.65)
@@ -132,24 +110,38 @@ class LLMSpin:
             return self.state
 
 class IsingLLM:
-    def __init__(self, size: int, temperature: float = 0.5):
+    def __init__(self, size: int, temperature: float = 0.5, client: dict = None, random_seed: int = None, 
+                 prompt_type: str = None, max_tokens: int = 1, z2_symmetry: bool = False):
+        self.client = client
+        self.model_name = client['model']
         self.size = size
         self.temperature = temperature
-        with open('config.yaml', 'r') as file: 
-            config = yaml.safe_load(file)
+        self.random_seed = random_seed
+        self.prompt_type = prompt_type
+        self.max_tokens = max_tokens
+        self.z2_symmetry = z2_symmetry
+        #with open('config.yaml', 'r') as file: 
+        #    config = yaml.safe_load(file)
+
+        random.seed(self.random_seed)    
+        np.random.seed(self.random_seed) 
+        torch.manual_seed(self.random_seed) 
         # choose global flip once (+ or - 1): to unbias the system and enforce z_2 symmetry
-        if config['z2_symmetry'] == True:
+        if self.z2_symmetry == True:
             self.global_flip  = 1 if np.random.rand() < 0.5 else -1
             # We init the lattice in a random config of yes and no states
-            self.lattice = [[LLMSpin((i, j), random.choice(['yes','no']), self.global_flip) for j in range(size)] for i in range(size)]
-            print(f"Global flip: {self.global_flip}")
+            self.lattice = [[LLMSpin((i, j), random.choice(['yes','no']), self.client, self.global_flip) for j in range(size)] for i in range(size)]
+            print(f"Global flip (Z2: true): {self.global_flip}")
         else:
             # We init the lattice in a random config of yes and no states
-            self.lattice = [[LLMSpin((i, j), random.choice(['yes','no'])) for j in range(size)] for i in range(size)]
+            self.global_flip  = 1
+            self.lattice = [[LLMSpin((i, j), random.choice(['yes','no']), self.client, self.global_flip) for j in range(size)] for i in range(size)]
+            print(f"Global flip (Z2: false): {self.global_flip}")
+
 # Load the config file
          
         # Update file naming to include prompt type
-        self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}_prompt-{config['prompt_type']}.csv"
+        self.output_file = f"magnetizations/isingllm_magnetization__seed-{self.random_seed}_model-{self.client['model']}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.csv"
         #self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.csv"
         
         # Initialize magnetization file
@@ -167,7 +159,7 @@ class IsingLLM:
     def update_site(self, i: int, j: int):
         """Update single site based on neighbors."""
         neighbors_states = self.get_neighbors(i, j)
-        new_state = self.lattice[i][j].get_response(neighbors_states, self.temperature)
+        new_state = self.lattice[i][j].get_response(neighbors_states, self.temperature, self.max_tokens, self.prompt_type)
         self.lattice[i][j].state = new_state
         
     def get_lattice_array(self) -> np.ndarray:
@@ -202,7 +194,7 @@ class IsingLLM:
     def save_lattice_state(self, step: int):
         """Save the current lattice state to a numpy array file."""
         lattice_array = self.get_lattice_array()
-        step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}_prompt-{config['prompt_type']}.npy"
+        step_filename = f"lattices/lattice-state__step_{step}_seed-{self.random_seed}_model-{self.client['model']}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.npy"
         #step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.npy"
         np.save(step_filename, lattice_array)
 
@@ -227,7 +219,7 @@ class IsingLLM:
         filename = f"images/lattice-image"
         if step is not None:
             filename += f"_step{step}"
-        filename += f"__seed-{config['seed']}_model-{config['model']}_size-{self.size}_temp-{self.temperature}_prompt-{config['prompt_type']}.png"
+        filename += f"__seed-{self.random_seed}_model-{self.client['model']}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.png"
         #filename += f"__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.png"
 
         # Save the figure
