@@ -93,7 +93,7 @@ if __name__ == "__main__":
             initial_magnetization = model.calculate_magnetization()
             #model.magnetization_history.append(initial_magnetization)
             model.save_step_magnetization(0, initial_magnetization)
-            print(f"Initial Magnetization: {initial_magnetization:.5f}\n")
+            print(f"Initial Magnetization: {initial_magnetization:.8f}\n")
             
             # Save initial state
             model.save_lattice_state(0)
@@ -113,6 +113,6 @@ if __name__ == "__main__":
                 model.save_step_magnetization(step + 1, magnetization)
                 
                 if step%5==0:
-                    print(f"Step: {step}, Magnetization: {magnetization:.5f}\n")
+                    print(f"Step: {step}, Magnetization: {magnetization:.8f}\n")
                 time.sleep(1)  # Delay to respect API rate limits
         
