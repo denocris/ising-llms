@@ -3,6 +3,7 @@ from typing import List, Tuple
 #import yaml
 #import argparse
 #import os
+import os
 import matplotlib.pyplot as plt 
 import random
 import torch
@@ -141,6 +142,15 @@ class IsingLLM:
         with open(self.output_file, 'w') as f:
             f.write("Step, Magnetization, M**2, M**4\n")
         
+        # Initialize per-site updates CSV
+        os.makedirs('site_updates', exist_ok=True)
+        self.site_updates_file = (
+            f"site_updates/site-updates__seed-{self.random_seed}_model-{self.client['model']}_"
+            f"size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.csv"
+        )
+        with open(self.site_updates_file, 'w') as f:
+            f.write("step, i,j,neighbors_states[0],neighbors_states[1],neighbors_states[2],neighbors_states[3], old_state, new_state\n")
+        
     def get_neighbors(self, i: int, j: int) -> List[str]:
         """Get states of neighboring spins (periodic boundary conditions)."""
         neighbors = []
@@ -149,11 +159,14 @@ class IsingLLM:
             neighbors.append(self.lattice[ni][nj].state)
         return neighbors
     
-    def update_site(self, i: int, j: int):
+    def update_site(self, i: int, j: int, step: int):
         """Update single site based on neighbors."""
+        old_state = self.lattice[i][j].state
         neighbors_states = self.get_neighbors(i, j)
         new_state = self.lattice[i][j].get_response(neighbors_states, self.temperature, self.max_tokens, self.prompt_type)
         self.lattice[i][j].state = new_state
+        # persist per-site update immediately
+        self.save_site_update(step, i, j, neighbors_states, old_state, new_state)
         
     def get_lattice_array(self) -> np.ndarray:
         """Convert current lattice state to numpy array."""
@@ -161,12 +174,12 @@ class IsingLLM:
                          for j in range(self.size)] 
                         for i in range(self.size)])
 
-    def step(self):
+    def step(self, step: int):
         """Perform one Monte Carlo step."""
         # Randomly select sites to update
         for _ in range(self.size * self.size):
             i, j = np.random.randint(0, self.size), np.random.randint(0, self.size)
-            self.update_site(i, j)
+            self.update_site(i, j, step)
     
     def calculate_magnetization(self) -> float:
         """Calculate system magnetization."""
@@ -225,3 +238,10 @@ class IsingLLM:
         """Save magnetization for current step immediately to file."""
         with open(self.output_file, 'a') as f:
             f.write(f"{step}, {magnetization:.8f}, {magnetization**2:.8f}, {magnetization**4:.8f}\n")
+
+    def save_site_update(self, step: int, i: int, j: int, neighbors_states: List[str], old_state: str, new_state: str) -> None:
+        """Append one site update row: i,j, neighbors[0..3], old_state, new_state."""
+        with open(self.site_updates_file, 'a') as f:
+            f.write(
+                f"{step},{i},{j},{neighbors_states[0]},{neighbors_states[1]},{neighbors_states[2]},{neighbors_states[3]},{old_state},{new_state}\n"
+            )

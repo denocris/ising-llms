@@ -20,5 +20,6 @@ curl -fsSL https://ollama.com/install.sh | sh
 nohup ollama serve > ollama.log 2>&1 &
 
 ollama pull gemma3:1b
+ollama pull phi4-mini:3.8b
 
 echo "Setup complete!"

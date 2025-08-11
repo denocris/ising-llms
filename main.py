@@ -100,7 +100,7 @@ if __name__ == "__main__":
             
             for step in tqdm(range(config['num_steps'])):
                 #print(f"Step {step}")
-                model.step()
+                model.step(step)
                 if config['show_viz']:
                     print(f"Step {step + 1}")
                     model.visualize()
