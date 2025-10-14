@@ -164,7 +164,6 @@ class IsingLLM:
         """Update single site based on neighbors."""
         old_state = self.lattice[i][j].state
         neighbors_states = self.get_neighbors(i, j)
-        print("NS: ", neighbors_states)
         if self.ties_fifty == False:
             new_state = self.lattice[i][j].get_response(neighbors_states, self.temperature, self.max_tokens, self.prompt_type)
             #print("NS: ", new_state)
