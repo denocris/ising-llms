@@ -9,7 +9,6 @@ import random
 import torch
 #import time
 
-
 #from openai import OpenAI
 #from groq import Groq
 #from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -85,7 +84,7 @@ class LLMSpin:
             elif self.service=='ollama':
                 response = ollama.generate(model=self.model_name, 
                          prompt=formatted_prompt, 
-                         options={"temperature":temperature, "num_predict": max_tokens})
+                         options={"temperature": temperature, "num_predict": max_tokens})
                 raw_state = response['response'].strip().lower()
             #print("Raw state:", raw_state)
             #time.sleep(0.65)
@@ -105,7 +104,7 @@ class LLMSpin:
 
 class IsingLLM:
     def __init__(self, size: int, temperature: float = 0.5, client: dict = None, random_seed: int = None, 
-                 prompt_type: str = None, max_tokens: int = 1, z2_symmetry: bool = False):
+                 prompt_type: str = None, max_tokens: int = 1, z2_symmetry: bool = False, ties_fifty: bool = False):
         self.client = client
         self.model_name = client['model']
         self.size = size
@@ -114,6 +113,7 @@ class IsingLLM:
         self.prompt_type = prompt_type
         self.max_tokens = max_tokens
         self.z2_symmetry = z2_symmetry
+        self.ties_fifty = ties_fifty
         #with open('config.yaml', 'r') as file: 
         #    config = yaml.safe_load(file)
 
@@ -135,7 +135,8 @@ class IsingLLM:
 # Load the config file
          
         # Update file naming to include prompt type
-        self.output_file = f"magnetizations/isingllm_magnetization__seed-{self.random_seed}_model-{self.client['model']}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.csv"
+        model_name_save = self.model_name.replace("/", "-")
+        self.output_file = f"magnetizations/isingllm_magnetization__seed-{self.random_seed}_model-{model_name_save}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.csv"
         #self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.csv"
         
         # Initialize magnetization file
@@ -145,7 +146,7 @@ class IsingLLM:
         # Initialize per-site updates CSV
         os.makedirs('site_updates', exist_ok=True)
         self.site_updates_file = (
-            f"site_updates/site-updates__seed-{self.random_seed}_model-{self.client['model']}_"
+            f"site_updates/site-updates__seed-{self.random_seed}_model-{model_name_save}_"
             f"size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.csv"
         )
         with open(self.site_updates_file, 'w') as f:
@@ -159,11 +160,20 @@ class IsingLLM:
             neighbors.append(self.lattice[ni][nj].state)
         return neighbors
     
-    def update_site(self, i: int, j: int, step: int):
+    def update_site(self, i: int, j: int, step: int,):
         """Update single site based on neighbors."""
         old_state = self.lattice[i][j].state
         neighbors_states = self.get_neighbors(i, j)
-        new_state = self.lattice[i][j].get_response(neighbors_states, self.temperature, self.max_tokens, self.prompt_type)
+        print("NS: ", neighbors_states)
+        if self.ties_fifty == False:
+            new_state = self.lattice[i][j].get_response(neighbors_states, self.temperature, self.max_tokens, self.prompt_type)
+            print("NS: ", new_state)
+        elif neighbors_states.count('yes') == 2 and self.ties_fifty == True:
+            new_state = "yes" if np.random.rand() < 0.5 else "no"
+            print("NS ---: ", new_state)
+        elif neighbors_states.count('yes') != 2 and self.ties_fifty == True:
+            new_state = self.lattice[i][j].get_response(neighbors_states, self.temperature, self.max_tokens, self.prompt_type)
+            print("NS: ", new_state)
         self.lattice[i][j].state = new_state
         # persist per-site update immediately
         self.save_site_update(step, i, j, neighbors_states, old_state, new_state)
@@ -200,7 +210,8 @@ class IsingLLM:
     def save_lattice_state(self, step: int):
         """Save the current lattice state to a numpy array file."""
         lattice_array = self.get_lattice_array()
-        step_filename = f"lattices/lattice-state__step_{step}_seed-{self.random_seed}_model-{self.client['model']}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.npy"
+        model_name_save = self.model_name.replace("/", "-")
+        step_filename = f"lattices/lattice-state__step_{step}_seed-{self.random_seed}_model-{model_name_save}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.npy"
         #step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.npy"
         np.save(step_filename, lattice_array)
 
@@ -225,7 +236,8 @@ class IsingLLM:
         filename = f"images/lattice-image"
         if step is not None:
             filename += f"_step{step}"
-        filename += f"__seed-{self.random_seed}_model-{self.client['model']}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.png"
+        model_name_save = self.model_name.replace("/", "-")
+        filename += f"__seed-{self.random_seed}_model-{model_name_save}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.png"
         #filename += f"__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.png"
 
         # Save the figure

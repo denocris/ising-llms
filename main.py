@@ -82,7 +82,8 @@ if __name__ == "__main__":
                              random_seed=current_seed,
                              prompt_type=config['prompt_type'],
                              max_tokens=config['max_tokens'],
-                             z2_symmetry=config['z2_symmetry'])
+                             z2_symmetry=config['z2_symmetry'],
+                             ties_fifty=config['ties_fifty'])
             
             # Run simulation for a few steps
             print("Init step")
