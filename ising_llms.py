@@ -167,13 +167,13 @@ class IsingLLM:
         print("NS: ", neighbors_states)
         if self.ties_fifty == False:
             new_state = self.lattice[i][j].get_response(neighbors_states, self.temperature, self.max_tokens, self.prompt_type)
-            print("NS: ", new_state)
+            #print("NS: ", new_state)
         elif neighbors_states.count('yes') == 2 and self.ties_fifty == True:
             new_state = "yes" if np.random.rand() < 0.5 else "no"
-            print("NS ---: ", new_state)
+            #print("NS ---: ", new_state)
         elif neighbors_states.count('yes') != 2 and self.ties_fifty == True:
             new_state = self.lattice[i][j].get_response(neighbors_states, self.temperature, self.max_tokens, self.prompt_type)
-            print("NS: ", new_state)
+            #print("NS: ", new_state)
         self.lattice[i][j].state = new_state
         # persist per-site update immediately
         self.save_site_update(step, i, j, neighbors_states, old_state, new_state)
