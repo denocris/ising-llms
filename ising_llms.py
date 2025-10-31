@@ -131,8 +131,6 @@ class IsingLLM:
             self.global_flip  = 1
             self.lattice = [[LLMSpin((i, j), random.choice(['yes','no']), self.client, self.global_flip) for j in range(size)] for i in range(size)]
             print(f"Global flip (Z2: false): {self.global_flip}")
-
-# Load the config file
          
         # Update file naming to include prompt type
         model_name_save = self.model_name.replace("/", "-")
