@@ -40,6 +40,13 @@ What state would you like to have?
 You can only respond with either 'yes' or 'no'.
 """
 
+prompt_nr7 = f"""
+You are a node in a 2D lattice system.
+Your neighbours have states: {neighbors_states}. 
+What state would you like to have?
+You can only respond with either 'yes' or 'no'.
+"""
+
 
 prompt_test = f"""
 yes or no?
