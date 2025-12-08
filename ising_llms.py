@@ -50,11 +50,23 @@ class LLMSpin:
     def get_response(self, neighbors_states: List[str], temperature: float, max_tokens: int = 1, prompt_type: str = None) -> str:
         """Generate LLM response based on neighbor states and temperature."""
         # Use selected prompt from prompts.txt
+        if prompt_type == 'nr6':
+            if neighbors_states.count('yes') == 3:
+                neighbors_states = 'majority yes'
+            elif neighbors_states.count('yes') == 2:
+                if random.random() < 0.5:
+                    neighbors_states = 'half yes and half no'
+                else:
+                    neighbors_states = 'half no and half yes'
+            else:
+                neighbors_states = 'majority no'
         prompt_template = PROMPTS[prompt_type]
         formatted_prompt = prompt_template.format(
             state=self.state,
             neighbors_states=neighbors_states
         )
+
+        print("Formatted prompt:", formatted_prompt)
 
         try:
             if self.service=='huggingface':
