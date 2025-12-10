@@ -145,7 +145,7 @@ class IsingLLM:
             print(f"Global flip (Z2: false): {self.global_flip}")
          
         # Update file naming to include prompt type
-        model_name_save = self.model_name.replace("/", "-")
+        model_name_save = self.model_name.replace(":", "-")
         self.output_file = f"magnetizations/isingllm_magnetization__seed-{self.random_seed}_model-{model_name_save}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.csv"
         #self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.csv"
         
@@ -219,7 +219,7 @@ class IsingLLM:
     def save_lattice_state(self, step: int):
         """Save the current lattice state to a numpy array file."""
         lattice_array = self.get_lattice_array()
-        model_name_save = self.model_name.replace("/", "-")
+        model_name_save = self.model_name.replace(":", "-")
         step_filename = f"lattices/lattice-state__step_{step}_seed-{self.random_seed}_model-{model_name_save}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.npy"
         #step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.npy"
         np.save(step_filename, lattice_array)
@@ -245,7 +245,7 @@ class IsingLLM:
         filename = f"images/lattice-image"
         if step is not None:
             filename += f"_step{step}"
-        model_name_save = self.model_name.replace("/", "-")
+        model_name_save = self.model_name.replace(":", "-")
         filename += f"__seed-{self.random_seed}_model-{model_name_save}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.png"
         #filename += f"__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.png"
 
