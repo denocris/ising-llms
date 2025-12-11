@@ -47,6 +47,12 @@ What state would you like to have?
 You can only respond with either 'yes' or 'no'.
 """
 
+prompt_nr8 = f"""
+Your neighbours have states: {neighbors_states}. 
+What state would you like to have?
+You can only respond with either {modality}.
+"""
+
 
 prompt_test = f"""
 yes or no?
