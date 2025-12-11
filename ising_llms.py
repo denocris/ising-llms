@@ -62,7 +62,7 @@ class LLMSpin:
         prompt_template = PROMPTS[prompt_type]
         formatted_prompt = prompt_template.format(
             state=self.state,
-            neighbors_states=neighbors_states
+            neighbors_states=neighbors_states,
             modality=modality
         )
 
