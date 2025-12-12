@@ -53,6 +53,11 @@ What state would you like to have?
 You can only respond with either {modality}.
 """
 
+prompt_nr9 = f"""
+Your neighbours have states: {neighbors_states}. 
+What state would you like to have? {modality}?.
+"""
+
 
 prompt_test = f"""
 yes or no?
