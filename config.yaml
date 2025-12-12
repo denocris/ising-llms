@@ -8,6 +8,6 @@ num_steps: 5
 max_tokens: 1
 show_viz: False
 generate_image: False
-prompt_type: nr6
+prompt_type: nr9
 temperature: [1.5]
 
