@@ -13,6 +13,7 @@ import torch
 #from groq import Groq
 #from transformers import AutoModelForCausalLM, AutoTokenizer
 import ollama
+import re
 
 
 # Load prompts from prompts.txt
@@ -30,6 +31,26 @@ def load_prompts():
     return prompts
 
 PROMPTS = load_prompts()
+
+
+def _state_to_sigma(state: str) -> int:
+    return 1 if state == "yes" else -1
+
+def _sigma_to_state(sig: int) -> str:
+    return "yes" if sig == 1 else "no"
+
+def _parse_yes_no(text: str) -> int:
+    t = text.strip().lower()
+    if t.startswith("yes"):
+        return 1
+    if t.startswith("no"):
+        return -1
+    m = re.search(r"\b(yes|no)\b", t)
+    if not m:
+        raise ValueError(f"Could not parse yes/no from: {text!r}")
+    return 1 if m.group(1) == "yes" else -1
+
+
 
 class LLMSpin:
     def __init__(self, position: Tuple[int, int], initial_state: str = "neutral", client: dict = None, global_flip: int = 1):
@@ -49,9 +70,23 @@ class LLMSpin:
 
     def get_response(self, neighbors_states: List[str], temperature: float, max_tokens: int = 1, prompt_type: str = None) -> str:
         """Generate LLM response based on neighbor states and temperature."""
+
+        s = self.global_flip
+
+        #physical sigma
+        sig_self = _state_to_sigma(self.state)
+        sig_nei  = [_state_to_sigma(x) for x in neighbors_states]   
+        print(sig_nei)
+
+        # token sigma shown to model
+        tok_self = _sigma_to_state(s * sig_self)
+        tok_nei  = [_sigma_to_state(s * sn) for sn in sig_nei]
+        print(tok_nei)
+        print(neighbors_states)
+
         # Use selected prompt from prompts.txt
         if prompt_type in ['nr6', 'nr7', 'nr8', 'nr9', 'nr10']:
-            if neighbors_states.count('yes') == 3:
+            if neighbors_states.count('yes') > 2:
                 neighbors_states = 'majority yes'
             elif neighbors_states.count('yes') == 2:
                 neighbors_states = 'half yes and half no' if random.random() < 0.5 else 'half no and half yes'
@@ -69,7 +104,7 @@ class LLMSpin:
             modality=modality
         )
 
-        #print("Formatted prompt:", formatted_prompt)
+        print("Formatted prompt:", formatted_prompt)
 
         try:
             if self.service=='huggingface':
@@ -106,13 +141,11 @@ class LLMSpin:
 
             # ------- global-flip post-processing ----------------------
             # this ensures that the system is unbiased and enforces z_2 symmetry
-            sigma_raw   = 1 if 'yes' in raw_state else -1    
-            sigma_final = self.global_flip * sigma_raw      
-            #print("Sigma raw:", sigma_raw)
-            #print("Sigma final:", sigma_final)
-            new_state = 'yes' if sigma_final == 1 else 'no'
-            #print("New state:", new_state)
-            return new_state
+            sigma_raw_tok = _parse_yes_no(raw_state) # +1 for "yes", -1 for "no" in token space
+            sigma_phys_tmp = s * sigma_raw_tok          # map back to physical
+            sigma_phys = _sigma_to_state(sigma_phys_tmp)
+            print("New state:", sigma_phys)
+            return sigma_phys
         except Exception as e:
             print(f"Error in LLM response: {e}")
             return self.state

@@ -2,12 +2,12 @@ service: ollama
 model: phi4-mini:3.8b
 z2_symmetry: True
 ties_fifty: False
-seed_range: [99]
+seed_range: [4]
 size: 5
 num_steps: 5
 max_tokens: 1
 show_viz: False
 generate_image: False
-prompt_type: nr9
-temperature: [1.5]
+prompt_type: nr11
+temperature: [1.0]
 
