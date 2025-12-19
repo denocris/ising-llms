@@ -76,13 +76,13 @@ class LLMSpin:
         #physical sigma
         sig_self = _state_to_sigma(self.state)
         sig_nei  = [_state_to_sigma(x) for x in neighbors_states]   
-        print(sig_nei)
+        #print(sig_nei)
 
         # token sigma shown to model
         tok_self = _sigma_to_state(s * sig_self)
         tok_nei  = [_sigma_to_state(s * sn) for sn in sig_nei]
-        print(tok_nei)
-        print(neighbors_states)
+        #print(tok_nei)
+        #print(neighbors_states)
 
         # Use selected prompt from prompts.txt
         if prompt_type in ['nr6', 'nr7', 'nr8', 'nr9', 'nr10']:
@@ -104,7 +104,7 @@ class LLMSpin:
             modality=modality
         )
 
-        print("Formatted prompt:", formatted_prompt)
+        #print("Formatted prompt:", formatted_prompt)
 
         try:
             if self.service=='huggingface':
@@ -144,7 +144,7 @@ class LLMSpin:
             sigma_raw_tok = _parse_yes_no(raw_state) # +1 for "yes", -1 for "no" in token space
             sigma_phys_tmp = s * sigma_raw_tok          # map back to physical
             sigma_phys = _sigma_to_state(sigma_phys_tmp)
-            print("New state:", sigma_phys)
+            #print("New state:", sigma_phys)
             return sigma_phys
         except Exception as e:
             print(f"Error in LLM response: {e}")
