@@ -35,9 +35,10 @@ if __name__ == "__main__":
     print("Running with config:", args.config)
     
     # Create directories if they don't exist
-    os.makedirs('magnetizations', exist_ok=True)
-    os.makedirs('images', exist_ok=True)
-    os.makedirs('lattices', exist_ok=True)
+    os.makedirs("magnetizations_"+config['folder_spec'], exist_ok=True)
+    os.makedirs("site_updates_"+config['folder_spec'], exist_ok=True)
+    os.makedirs("images_"+config['folder_spec'], exist_ok=True)
+    os.makedirs("lattices_"+config['folder_spec'], exist_ok=True)
 
     #random.seed(config['seed'])    
     #np.random.seed(config['seed']) 
@@ -83,7 +84,9 @@ if __name__ == "__main__":
                              prompt_type=config['prompt_type'],
                              max_tokens=config['max_tokens'],
                              z2_symmetry=config['z2_symmetry'],
-                             ties_fifty=config['ties_fifty'])
+                             ties_fifty=config['ties_fifty'],
+                             folder_spec=config['folder_spec'])
+                             
             
             # Run simulation for a few steps
             print("Init step")
@@ -107,7 +110,8 @@ if __name__ == "__main__":
                     model.visualize()
                 if config['generate_image']:
                     model.save_lattice_image(step=step+1)  # Save image for this step
-                model.save_lattice_state(step + 1)
+                if step==config['num_steps']-1:
+                    model.save_lattice_state(step=step+1) 
 
                 # Save magnetization and lattice state
                 magnetization = model.calculate_magnetization()

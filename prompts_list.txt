@@ -54,8 +54,9 @@ You can only respond with either {modality}.
 """
 
 prompt_nr9 = f"""
+One rule: only respond with either 'yes' or 'no'.
 Your neighbours have states: {neighbors_states}. 
-What state would you like to have? {modality}?
+What state would you like to have?
 """
 
 prompt_nr10 = f"""

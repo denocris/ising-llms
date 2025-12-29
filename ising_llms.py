@@ -85,10 +85,25 @@ class LLMSpin:
         #print(neighbors_states)
 
         # Use selected prompt from prompts.txt
-        if prompt_type in ['nr6', 'nr7', 'nr8', 'nr9', 'nr10']:
+        if prompt_type in ['nr6', 'nr7', 'nr8', 'nr10']:
             if neighbors_states.count('yes') > 2:
                 neighbors_states = 'majority yes'
             elif neighbors_states.count('yes') == 2:
+                neighbors_states = 'half yes and half no' if random.random() < 0.5 else 'half no and half yes'
+            else:
+                neighbors_states = 'majority no'
+            modality = "'yes' or 'no'" if random.random() < 0.5 else "'no' or 'yes'"
+            #modality = "'yes' or 'no'"
+        elif prompt_type == 'nr9':
+            if neighbors_states.count('yes') == 4:
+                neighbors_states = 'all yes'
+            elif neighbors_states.count('yes') == 0:
+                neighbors_states = 'all no'
+            elif neighbors_states.count('yes') == 1:
+                neighbors_states = 'majority no'
+            elif neighbors_states.count('yes') == 3:
+                neighbors_states = 'majority yes'
+            elif neighbors_states.count('yes') == 2:    
                 neighbors_states = 'half yes and half no' if random.random() < 0.5 else 'half no and half yes'
             else:
                 neighbors_states = 'majority no'
@@ -152,7 +167,8 @@ class LLMSpin:
 
 class IsingLLM:
     def __init__(self, size: int, temperature: float = 0.5, client: dict = None, random_seed: int = None, 
-                 prompt_type: str = None, max_tokens: int = 1, z2_symmetry: bool = False, ties_fifty: bool = False):
+                 prompt_type: str = None, max_tokens: int = 1, z2_symmetry: bool = False, ties_fifty: bool = False, 
+                 folder_spec: str = None):
         self.client = client
         self.model_name = client['model']
         self.size = size
@@ -162,6 +178,8 @@ class IsingLLM:
         self.max_tokens = max_tokens
         self.z2_symmetry = z2_symmetry
         self.ties_fifty = ties_fifty
+        self.folder_spec = folder_spec
+
         #with open('config.yaml', 'r') as file: 
         #    config = yaml.safe_load(file)
 
@@ -182,7 +200,7 @@ class IsingLLM:
          
         # Update file naming to include prompt type
         model_name_save = self.model_name.replace(":", "-")
-        self.output_file = f"magnetizations/isingllm_magnetization__seed-{self.random_seed}_model-{model_name_save}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.csv"
+        self.output_file = f"magnetizations_{self.folder_spec}/isingllm_magnetization__seed-{self.random_seed}_model-{model_name_save}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.csv"
         #self.output_file = f"magnetizations/isingllm_magnetization__seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.csv"
         
         # Initialize magnetization file
@@ -190,9 +208,9 @@ class IsingLLM:
             f.write("Step, Magnetization, M**2, M**4\n")
         
         # Initialize per-site updates CSV
-        os.makedirs('site_updates', exist_ok=True)
+        #os.makedirs(self.site_updates_folder, exist_ok=True)
         self.site_updates_file = (
-            f"site_updates/site-updates__seed-{self.random_seed}_model-{model_name_save}_"
+            f"site_updates_{self.folder_spec}/site-updates__seed-{self.random_seed}_model-{model_name_save}_"
             f"size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.csv"
         )
         with open(self.site_updates_file, 'w') as f:
@@ -256,7 +274,7 @@ class IsingLLM:
         """Save the current lattice state to a numpy array file."""
         lattice_array = self.get_lattice_array()
         model_name_save = self.model_name.replace(":", "-")
-        step_filename = f"lattices/lattice-state__step_{step}_seed-{self.random_seed}_model-{model_name_save}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.npy"
+        step_filename = f"lattices_{self.folder_spec}/lattice-state__step_{step}_seed-{self.random_seed}_model-{model_name_save}_size-{self.size}_temp-{self.temperature}_prompt-{self.prompt_type}.npy"
         #step_filename = f"lattices/lattice-state__step_{step}_seed-{config['seed']}_model-llama-4-scout-17b-16e-instruct_size-{self.size}_temp-{self.temperature}.npy"
         np.save(step_filename, lattice_array)
 

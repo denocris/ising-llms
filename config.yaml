@@ -1,13 +1,14 @@
 service: ollama
-model: phi4-mini:3.8b
+model: llama3.1:8b
+folder_spec: "long-runs" 
 z2_symmetry: True
 ties_fifty: False
-seed_range: [4]
-size: 5
-num_steps: 5
+seed_range: [99]
+size: 15
+num_steps: 30
 max_tokens: 1
 show_viz: False
 generate_image: False
-prompt_type: nr11
+prompt_type: nr10
 temperature: [1.0]
 
