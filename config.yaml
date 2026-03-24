@@ -1,5 +1,5 @@
 service: ollama
-model: llama3.1:8b
+model: mistral:7b
 folder_spec: "long-runs" 
 z2_symmetry: True
 ties_fifty: False
@@ -9,6 +9,6 @@ num_steps: 30
 max_tokens: 1
 show_viz: False
 generate_image: False
-prompt_type: nr10
+prompt_type: nr12
 temperature: [1.0]
 

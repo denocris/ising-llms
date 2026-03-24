@@ -71,6 +71,13 @@ Your neighbours have states: {neighbors_states}.
 What state would you like to have?
 """
 
+prompt_nr12 = f"""
+One rule: only respond with either 'yes' or 'no'.
+Your neighbours have states: {neighbors_states}. 
+Take your neighbors choices into account.
+What state would you like to have?
+"""
+
 
 prompt_test = f"""
 yes or no?
